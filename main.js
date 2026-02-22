@@ -70,12 +70,16 @@ async function fetchGitHub() {
 ══════════════════════════════════════════ */
 async function fetchMedium() {
   if (LIVE.medium || LIVE.loading.medium) return;
+  const mediumUrl = (PORTFOLIO_CONFIG.contact.medium || '').trim();
+  if (!mediumUrl) {
+    const blogPosts = PORTFOLIO_CONFIG.blogPosts || [];
+    LIVE.medium = { posts: blogPosts.map(p => ({ title: p.title, desc: p.desc, date: p.date, link: p.link, tags: [] })) };
+    return;
+  }
   LIVE.loading.medium = true;
-
-  const mediumUrl = PORTFOLIO_CONFIG.contact.medium;                    // e.g. https://medium.com/@thecodebean
-  const handle    = mediumUrl.includes('@') ? mediumUrl.split('@').pop() : 'thecodebean';
-  const rssUrl    = `https://medium.com/feed/@${handle}`;
-  const apiUrl    = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=30`;
+  const handle = mediumUrl.includes('@') ? mediumUrl.split('@').pop().split('/')[0] : mediumUrl.replace(/^https?:\/\/(www\.)?medium\.com\/@?/, '').split('/')[0] || 'user';
+  const rssUrl = `https://medium.com/feed/@${handle}`;
+  const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=30`;
 
   try {
     const res  = await fetch(apiUrl);
@@ -99,9 +103,10 @@ async function fetchMedium() {
     }
   } catch (err) {
     console.warn('⚠️ Medium RSS failed, falling back to config:', err);
-    // Fallback to static config data
+    // Fallback to static config data (blogPosts is optional in config)
+    const blogPosts = PORTFOLIO_CONFIG.blogPosts || [];
     LIVE.medium = {
-      posts: PORTFOLIO_CONFIG.blogPosts.map(p => ({
+      posts: blogPosts.map(p => ({
         title: p.title, desc: p.desc, date: p.date, link: p.link, tags: []
       }))
     };
@@ -190,7 +195,8 @@ function bootFromConfig() {
 
   // Set blog count from config initially; live data will update it
   const blogDesc = document.getElementById('blog-zone-desc');
-  if (blogDesc) blogDesc.textContent = `${PORTFOLIO_CONFIG.blogPosts.length} articles published`;
+  const blogPostsCount = (PORTFOLIO_CONFIG.blogPosts || []).length;
+  if (blogDesc) blogDesc.textContent = `${blogPostsCount} articles published`;
 
   // Update blog count once Medium loads
   retryWhenReady('medium', (md) => {
@@ -500,13 +506,12 @@ function renderBlogs(el) {
     </div>
     <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; flex-wrap:wrap;">
       <div style="font-size:15px; color:var(--dim);">
-        Live from <span style="color:var(--green);">The Code Bean</span> · Medium
-        <span style="color:var(--green); font-size:10px; margin-left:6px;">⚡ LIVE</span>
+        ${c.medium ? `Live from <span style="color:var(--green);">Medium</span> <span style="color:var(--green); font-size:10px; margin-left:6px;">⚡ LIVE</span>` : 'Published scrolls'}
         <span id="blog-post-count" style="color:var(--purple);">
           ${md ? ` · ${md.posts.length} posts` : ' · ⏳ loading...'}
         </span>
       </div>
-      <a href="${c.medium}" target="_blank" class="back-btn" style="border-color:var(--green); color:var(--green); text-decoration:none; font-family:'Press Start 2P',monospace; font-size:7px; padding:7px 12px;">↗ VISIT BLOG</a>
+      ${c.medium ? `<a href="${c.medium}" target="_blank" class="back-btn" style="border-color:var(--green); color:var(--green); text-decoration:none; font-family:'Press Start 2P',monospace; font-size:7px; padding:7px 12px;">↗ VISIT BLOG</a>` : ''}
     </div>
     <div class="section-label">PUBLISHED SCROLLS</div>
     <div id="blog-list">
@@ -542,7 +547,7 @@ function buildBlogCards(posts) {
         <div class="blog-desc">${post.desc}</div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px;">
           <div class="blog-date">📅 ${post.date}</div>
-          ${post.tags.map(t => `<span style="font-size:11px;color:var(--purple);border:1px solid var(--purple);padding:1px 6px;">${t}</span>`).join('')}
+          ${(post.tags || []).map(t => `<span style="font-size:11px;color:var(--purple);border:1px solid var(--purple);padding:1px 6px;">${t}</span>`).join('')}
         </div>
       </div>
       <span style="color:var(--green); font-size:18px; flex-shrink:0;">↗</span>
@@ -653,16 +658,20 @@ function renderContact(el) {
   const p  = PORTFOLIO_CONFIG.profile;
   const gh = LIVE.github;
   const md = LIVE.medium;
+  const githubUser = c.github ? c.github.split('/').filter(Boolean).pop() : '';
+  const twitterHandle = c.twitter ? (c.twitter.split('/').filter(Boolean).pop() || 'View profile') : '';
+  const twitchUser = c.twitch ? (c.twitch.split('/').filter(Boolean).pop() || 'View channel') : '';
+  const kofiUser = c.kofi ? (c.kofi.replace(/\/$/, '').split('/').pop() || 'View profile') : '';
+  const mediumLabel = c.medium ? (c.medium.includes('@') ? c.medium.split('@').pop().split('/')[0] : 'Blog') : 'Blog';
 
   const links = [
     c.linkedin     ? { href: c.linkedin,            icon: '💼', label: 'LinkedIn',        value: (c.linkedin.split('/in/')[1] || 'View Profile').replace(/\/$/, '') } : null,
-    c.github       ? { href: c.github,              icon: '🐙', label: 'GitHub',          value: gh ? `@deepank-yadav · ${gh.repos} repos · ${gh.followers} followers` : '⏳ loading...', id: 'ct-github' } : null,
-    // Email hidden intentionally — use the contact form below to reach out
-    c.medium       ? { href: c.medium,              icon: '📝', label: 'Medium Blog',     value: md ? `The Code Bean · ${md.posts.length} posts · ${p.mediumFollowers} followers` : '⏳ loading...', id: 'ct-medium' } : null,
-    c.twitter      ? { href: c.twitter,             icon: '🐦', label: 'X / Twitter',     value: '@deepank_yadav' } : null,
-    c.twitch       ? { href: c.twitch,              icon: '🎮', label: 'Twitch',           value: 'deepankyadav' } : null,
-    c.buymeacoffee ? { href: c.buymeacoffee,        icon: '☕', label: 'Buy Me a Coffee',  value: 'Support the hero' } : null,
-    c.kofi         ? { href: c.kofi,                icon: '🧡', label: 'Ko-Fi',            value: 'ko-fi.com/deepank' } : null,
+    c.github       ? { href: c.github,              icon: '🐙', label: 'GitHub',          value: gh ? `@${githubUser} · ${gh.repos} repos · ${gh.followers} followers` : '⏳ loading...', id: 'ct-github' } : null,
+    c.medium       ? { href: c.medium,              icon: '📝', label: 'Medium Blog',     value: md ? `${mediumLabel} · ${md.posts.length} posts · ${p.mediumFollowers} followers` : '⏳ loading...', id: 'ct-medium' } : null,
+    c.twitter      ? { href: c.twitter,             icon: '🐦', label: 'X / Twitter',     value: twitterHandle.startsWith('@') ? twitterHandle : `@${twitterHandle}` } : null,
+    c.twitch       ? { href: c.twitch,              icon: '🎮', label: 'Twitch',          value: twitchUser } : null,
+    c.buymeacoffee ? { href: c.buymeacoffee,        icon: '☕', label: 'Buy Me a Coffee', value: 'Support the hero' } : null,
+    c.kofi         ? { href: c.kofi,                icon: '🧡', label: 'Ko-Fi',          value: kofiUser } : null,
   ].filter(Boolean);
 
   el.innerHTML = `
@@ -699,12 +708,14 @@ function renderContact(el) {
 
   if (!gh) retryWhenReady('github', (g) => {
     const el = document.getElementById('ct-github');
-    if (el) el.textContent = `@deepank-yadav · ${g.repos} repos · ${g.followers} followers`;
+    const user = c.github ? c.github.split('/').filter(Boolean).pop() : '';
+    if (el) el.textContent = `@${user} · ${g.repos} repos · ${g.followers} followers`;
   });
 
   if (!md) retryWhenReady('medium', (m) => {
     const el = document.getElementById('ct-medium');
-    if (el) el.textContent = `The Code Bean · ${m.posts.length} posts · ${p.mediumFollowers} followers`;
+    const label = c.medium && c.medium.includes('@') ? c.medium.split('@').pop().split('/')[0] : 'Blog';
+    if (el) el.textContent = `${label} · ${m.posts.length} posts · ${p.mediumFollowers} followers`;
   });
 }
 

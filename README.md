@@ -1,4 +1,4 @@
-# ⚔️ Quest for the Code — Deepank Yadav's Portfolio
+# ⚔️ Quest for the Code — Veeranna Joni's Portfolio
 
 > A retro RPG-style interactive portfolio website built with pure HTML, CSS & JavaScript.
 > No frameworks. No build tools. Just open `index.html` and play.
@@ -141,7 +141,7 @@ projects: [
     name: "🚀 My New Project",
     desc: "What it does...",
     tags: ["Java", "Spring Boot", "Docker"],
-    link: "https://github.com/deepank-yadav/project"  // "" to hide the link
+    link: "https://github.com/your-username/project"  // "" to hide the link
   },
 ]
 ```
@@ -230,7 +230,7 @@ These numbers are fetched **live every time someone opens your portfolio** — y
 ### ✅ Option 2 — Netlify (Drag & Drop, 30 seconds)
 1. Go to [netlify.com](https://netlify.com) → sign up free
 2. Drag your portfolio folder onto the dashboard
-3. Instant live URL: `https://deepank-portfolio.netlify.app`
+3. Instant live URL: `https://your-project.netlify.app`
 
 ### ✅ Option 3 — Vercel
 1. Go to [vercel.com](https://vercel.com) → sign up free
@@ -256,17 +256,15 @@ These numbers are fetched **live every time someone opens your portfolio** — y
 
 ## 📞 Contact
 
-**Deepank Yadav**
+**Veeranna Joni**
 
 | | |
 |---|---|
-| 💼 LinkedIn | [linkedin.com/in/deepankyadav](https://linkedin.com/in/deepankyadav) |
-| 🐙 GitHub | [github.com/deepank-yadav](https://github.com/deepank-yadav) |
-| ✍️ Blog | [medium.com/@thecodebean](https://medium.com/@thecodebean) |
-| 🐦 Twitter | [@deepank_yadav](https://x.com/deepank_yadav) |
+| 💼 LinkedIn | [linkedin.com/in/veeranna-joni-a6a89b20b](https://www.linkedin.com/in/veeranna-joni-a6a89b20b/) |
+| 🐙 GitHub | [github.com/veerannajoni](https://github.com/veerannajoni) |
 
 ---
 
 ## 📄 License
 
-© 2026 Deepank Yadav. All rights reserved.
+© 2026 Veeranna Joni. All rights reserved.
